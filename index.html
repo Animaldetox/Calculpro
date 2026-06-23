@@ -1,1 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AnimalDetox V2</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0b1220;color:#fff;margin:0}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{background:#111827;padding:16px;border-radius:12px}
+input,select{width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box}
+h1{color:#22c55e;text-align:center}
+.badge{padding:8px 12px;border-radius:8px;display:inline-block;font-weight:bold}
+.low{background:#166534}.med{background:#b45309}.high{background:#b91c1c}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🏥 AnimalDetox V2</h1>
+<div class="card">
+<label>Espèce</label>
+<select id="species"><option>Chien</option><option>Chat</option></select>
 
+<label>Poids (kg)</label>
+<input id="weight" type="number" value="10">
+
+<label>Quantité ingérée (g)</label>
+<input id="qty" type="number" value="10">
+
+<label>Délai (heures)</label>
+<input id="time" type="number" value="2">
+
+<label>Recherche toxique</label>
+<input id="search" placeholder="xylitol, chocolat...">
+
+<label>Toxique</label>
+<select id="toxic"></select>
+
+<button onclick="analyze()">Analyser</button>
+
+<div id="result" style="margin-top:15px"></div>
+</div>
+</div>
+
+<script>
+const toxics=[
+{name:"Xylitol",cat:"Édulcorant",risk:5,sym:"Hypoglycémie, vomissements"},
+{name:"Chocolat noir",cat:"Méthylxanthine",risk:4,sym:"Agitation, tachycardie"},
+{name:"Raisin",cat:"Néphrotoxique",risk:4,sym:"Vomissements, atteinte rénale"},
+{name:"Oignon",cat:"Hémolytique",risk:3,sym:"Anémie, faiblesse"},
+{name:"Paracétamol",cat:"Hépatotoxique",risk:5,sym:"Atteinte hépatique"}
+];
+
+const sel=document.getElementById("toxic");
+function render(list){
+ sel.innerHTML="";
+ list.forEach(t=>{
+   const o=document.createElement("option");
+   o.value=t.name;
+   o.textContent=t.name+" ["+t.cat+"]";
+   sel.appendChild(o);
+ });
+}
+render(toxics);
+
+document.getElementById("search").addEventListener("input",e=>{
+ const v=e.target.value.toLowerCase();
+ render(toxics.filter(t=>t.name.toLowerCase().includes(v)||t.cat.toLowerCase().includes(v)));
+});
+
+function analyze(){
+ const tox=toxics.find(t=>t.name===sel.value);
+ const w=+document.getElementById("weight").value||1;
+ const q=+document.getElementById("qty").value||0;
+ const h=+document.getElementById("time").value||0;
+
+ let score=(q/w)*10 + tox.risk*10;
+ if(h<2) score+=10;
+ score=Math.min(100,Math.round(score));
+
+ let level="Faible", cls="low";
+ if(score>=40){level="Modéré";cls="med";}
+ if(score>=70){level="Élevé";cls="high";}
+
+ document.getElementById("result").innerHTML=`
+ <h3>${tox.name}</h3>
+ <p>Catégorie : ${tox.cat}</p>
+ <p>Symptômes : ${tox.sym}</p>
+ <span class="badge ${cls}">Risque indicatif : ${level} (${score}/100)</span>
+ <p><small>Outil informatif uniquement. Ne remplace pas un avis vétérinaire.</small></p>`;
+}
+</script>
+</body>
+</html>
